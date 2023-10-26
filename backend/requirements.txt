@@ -2,3 +2,6 @@ fastapi
 uvicorn
 statistics
 matplotlib
+aiohttp
+jinja2
+python-dotenv

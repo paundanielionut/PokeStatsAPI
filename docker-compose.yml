@@ -5,5 +5,3 @@ services:
       context: ./backend
     ports:
       - '80:80'
-    depends_on:
-      - static
