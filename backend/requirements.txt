@@ -5,3 +5,5 @@ matplotlib
 aiohttp
 jinja2
 python-dotenv
+pytest
+pytest-asyncio

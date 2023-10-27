@@ -1,7 +1,6 @@
 import asyncio
 import os
 
-import aiohttp
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
@@ -9,6 +8,8 @@ from fastapi.templating import Jinja2Templates
 
 from statistics import mean, median, variance
 
+from pokeclient.berries_client import BerriesClient
+from pokeclient.http_client import HttpClient
 from utils import get_frequencies, make_frequency_growth_time_histogram
 
 app = FastAPI()
@@ -16,7 +17,7 @@ load_dotenv()
 
 templates = Jinja2Templates(directory="templates")
 
-POKEAPI_BASE_URL = os.getenv("POKEAPI_BASE_URL")
+POKEAPI_BASE_URL = os.getenv("BERRIES_URL")
 
 
 @app.get('/histogram')
@@ -29,21 +30,12 @@ async def get_all_berry_stats():
     berry_names = []
     growth_times = []
 
-    async with aiohttp.ClientSession() as session:
-        response = await session.get(f"{POKEAPI_BASE_URL}berry?offset=0&limit=64")
-        tasks = []
-        if response.status == 200:
-            data = await response.json()
-            for berry in data['results']:
-                berry_names.append(berry['name'])
-                tasks.append(session.get(berry['url']))
-
-        responses = await asyncio.gather(*tasks)
-        for resp in responses:
-            berry_data = await resp.json()
-            if resp.status == 200:
-                growth_time = berry_data['growth_time']
-                growth_times.append(int(growth_time))
+    async with BerriesClient(url=POKEAPI_BASE_URL) as bclient:
+        berries = await bclient.get_berries()
+        for berry_data in berries:
+            berry_names.append(berry_data['name'])
+            growth_time = berry_data['growth_time']
+            growth_times.append(int(growth_time))
 
     min_growth_time = min(growth_times)
     median_growth_time = median(growth_times)

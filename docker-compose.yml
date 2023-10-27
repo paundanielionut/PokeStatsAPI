@@ -3,5 +3,8 @@ services:
   backend:
     build:
       context: ./backend
+    command: uvicorn app:app --host 0.0.0.0 --port 80 --reload
     ports:
       - '80:80'
+    volumes:
+      - ./backend:/app
